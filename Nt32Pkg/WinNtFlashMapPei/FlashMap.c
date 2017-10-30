@@ -97,6 +97,8 @@ Returns:
   }
   
   PcdSet32 (PcdVpdBaseAddress, PcdGet32 (PcdWinNtVpdBaseAddress) + (UINT32) FdBase);
+  LibPcdSetSku (1);
+  PcdSet16 (PcdSetNvStoreDefaultId, 0x0);
 
   return EFI_SUCCESS;
 }

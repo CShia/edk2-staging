@@ -63,6 +63,7 @@
   gEfiNt32PkgTokenSpaceGuid.PcdWinNtFlashNvStorageFtwSpareBase
   gEfiNt32PkgTokenSpaceGuid.PcdWinNtFlashNvStorageVariableBase
   gEfiNt32PkgTokenSpaceGuid.PcdWinNtVpdBaseAddress
+  gEfiMdeModulePkgTokenSpaceGuid.PcdSetNvStoreDefaultId
 
 [Depex]
   gNtFwhPpiGuid
