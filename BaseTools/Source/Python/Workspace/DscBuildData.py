@@ -1052,6 +1052,8 @@ class DscBuildData(PlatformBuildClassObject):
                 str_pcd_obj.SkuInfoList[self.SkuIdMgr.SystemSkuId].HiiDefaultValue = str_pcd_obj.SkuInfoList[self.SkuIdMgr.SystemSkuId].DefaultStoreDict[mindefaultstorename]
                 
             for str_pcd_obj in S_pcd_set.values():
+                if not str_pcd_obj.OverrideValues:
+                    continue
                 str_pcd_obj.MaxDatumSize = self.GetStructurePcdMaxSize(str_pcd_obj)
                 Pcds[str_pcd_obj.TokenCName, str_pcd_obj.TokenSpaceGuidCName] = str_pcd_obj
             
