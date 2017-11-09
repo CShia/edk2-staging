@@ -1099,14 +1099,18 @@ class PcdReport(object):
                     self.PrintStructureInfo(File, Struct)
             self.PrintPcdDefault(File, Pcd, IsStructure, DscMatch, DscDefaultValue, InfMatch, InfDefaultValue, DecMatch, DecDefaultValue)   
         else:
-            for Sku in Pcd.SkuInfoList:
+            FirstPrint = True
+            SkuList = sorted(Pcd.SkuInfoList.keys())
+            for Sku in SkuList:
                 SkuInfo = Pcd.SkuInfoList[Sku]
                 if TypeName in ('DYNHII', 'DEXHII'):
                     if SkuInfo.DefaultStoreDict:
-                        for DefaultStore in SkuInfo.DefaultStoreDict:
+                        DefaultStoreList = sorted(SkuInfo.DefaultStoreDict.keys())
+                        for DefaultStore in DefaultStoreList:
                             Value = SkuInfo.DefaultStoreDict[DefaultStore]
                             IsByteArray, ArrayList = ByteArrayForamt(Value)
-                            if Sku == GlobalData.gSkuids[0] and DefaultStore == GlobalData.gDefaultStores[0]:
+                            if FirstPrint:
+                                FirstPrint = False
                                 if IsByteArray:
                                     FileWrite(File, ' %-*s   : %6s %10s %10s %10s = %s' % (self.MaxLen, Flag + ' ' + PcdTokenCName, TypeName, '(' + Pcd.DatumType + ')', '(' + Sku + ')', '(' + DefaultStore + ')', '{'))
                                     for Array in ArrayList:
@@ -1129,7 +1133,8 @@ class PcdReport(object):
                 elif TypeName in ('DYNVPD', 'DEXVPD'):
                     Value = SkuInfo.DefaultValue
                     IsByteArray, ArrayList = ByteArrayForamt(Value)
-                    if Sku == GlobalData.gSkuids[0]:
+                    if FirstPrint:
+                        FirstPrint = False
                         if IsByteArray:
                             FileWrite(File, ' %-*s   : %6s %10s %10s = %s' % (self.MaxLen, Flag + ' ' + PcdTokenCName, TypeName, '(' + Pcd.DatumType + ')', '(' + Sku + ')', "{"))
                             for Array in ArrayList:
@@ -1154,7 +1159,8 @@ class PcdReport(object):
                 else:
                     Value = SkuInfo.DefaultValue
                     IsByteArray, ArrayList = ByteArrayForamt(Value)
-                    if Sku == GlobalData.gSkuids[0]:
+                    if FirstPrint:
+                        FirstPrint = False
                         if IsByteArray:
                             FileWrite(File, ' %-*s   : %6s %10s %10s = %s' % (self.MaxLen, Flag + ' ' + PcdTokenCName, TypeName, '(' + Pcd.DatumType + ')', '(' + Sku + ')', '{'))
                             for Array in ArrayList:
