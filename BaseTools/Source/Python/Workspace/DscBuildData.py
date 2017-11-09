@@ -598,7 +598,7 @@ class DscBuildData(PlatformBuildClassObject):
                 if not IsValidWord(Record[1]):
                     EdkLogger.error('build', FORMAT_INVALID, "The format of the Sku ID name is invalid. The correct format is '(a-zA-Z0-9_)(a-zA-Z0-9_-.)*'",
                                     File=self.MetaFile, Line=Record[-1])
-                self._SkuIds[Record[1]] = (Record[0],Record[1],Record[2])
+                self._SkuIds[Record[1].upper()] = (Record[0], Record[1].upper(), Record[2].upper())
             if 'DEFAULT' not in self._SkuIds:
                 self._SkuIds['DEFAULT'] = ("0","DEFAULT","DEFAULT")
             if 'COMMON' not in self._SkuIds:
@@ -617,7 +617,7 @@ class DscBuildData(PlatformBuildClassObject):
                 if Record[1] in [None, '']:
                     EdkLogger.error('build', FORMAT_INVALID, 'No DefaultStores ID name',
                                     File=self.MetaFile, Line=Record[-1])
-                self.DefaultStores[Record[1]] = (self.ToInt(Record[0]),Record[1])
+                self.DefaultStores[Record[1].upper()] = (self.ToInt(Record[0]),Record[1].upper())
             if TAB_DEFAULT_STORES_DEFAULT not in self.DefaultStores:
                 self.DefaultStores[TAB_DEFAULT_STORES_DEFAULT] = (0,TAB_DEFAULT_STORES_DEFAULT)
             GlobalData.gDefaultStores = self.DefaultStores.keys()
@@ -955,6 +955,8 @@ class DscBuildData(PlatformBuildClassObject):
             RecordList.extend(self._RawData[Type, self._Arch])
             
         for TokenSpaceGuid, PcdCName, Setting, Arch, SkuName, default_store, Dummy4,Dummy5 in RecordList:
+            SkuName = SkuName.upper()
+            default_store = default_store.upper()
             SkuName = 'DEFAULT' if SkuName == 'COMMON' else SkuName
             if SkuName not in SkuIds:
                 continue
@@ -1079,6 +1081,7 @@ class DscBuildData(PlatformBuildClassObject):
         RecordList = self._RawData[Type, self._Arch]
         PcdValueDict = sdict()
         for TokenSpaceGuid, PcdCName, Setting, Arch, SkuName, Dummy3, Dummy4,Dummy5 in RecordList:
+            SkuName = SkuName.upper()
             if SkuName in (self.SkuIdMgr.SystemSkuId, 'DEFAULT', 'COMMON'):
                 if "." not in TokenSpaceGuid:
                     PcdSet.add((PcdCName, TokenSpaceGuid, SkuName, Dummy4))
@@ -1479,6 +1482,7 @@ class DscBuildData(PlatformBuildClassObject):
         
         
         for TokenSpaceGuid, PcdCName, Setting, Arch, SkuName, Dummy3, Dummy4,Dummy5 in RecordList:
+            SkuName = SkuName.upper()
             if SkuName not in AvailableSkuIdSet:
                 continue
             if "." not in TokenSpaceGuid:
@@ -1612,6 +1616,8 @@ class DscBuildData(PlatformBuildClassObject):
         AvailableSkuIdSet = copy.copy(self.SkuIds)
         
         for TokenSpaceGuid, PcdCName, Setting, Arch, SkuName, DefaultStore, Dummy4,Dummy5 in RecordList:
+            SkuName = SkuName.upper()
+            DefaultStore = DefaultStore.upper()
             if DefaultStore == "COMMON":
                 DefaultStore = "STANDARD"
             if SkuName not in AvailableSkuIdSet:
@@ -1766,6 +1772,7 @@ class DscBuildData(PlatformBuildClassObject):
         AvailableSkuIdSet = copy.copy(self.SkuIds)
         
         for TokenSpaceGuid, PcdCName, Setting, Arch, SkuName, Dummy3, Dummy4,Dummy5 in RecordList:
+            SkuName = SkuName.upper()
             if SkuName not in AvailableSkuIdSet:
                 continue
             if "." not in TokenSpaceGuid:
