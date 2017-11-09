@@ -591,6 +591,13 @@ class DscBuildData(PlatformBuildClassObject):
                 if Record[1] in [None, '']:
                     EdkLogger.error('build', FORMAT_INVALID, 'No Sku ID name',
                                     File=self.MetaFile, Line=Record[-1])
+                Pattern = re.compile('^[1-9]\d*|0$')
+                if Pattern.match(Record[0]) == None:
+                    EdkLogger.error('build', FORMAT_INVALID, "The format of the Sku ID number is invalid. The correct format is '{(0-9)} {(1-9)(0-9)+}'",
+                                    File=self.MetaFile, Line=Record[-1])
+                if not IsValidWord(Record[1]):
+                    EdkLogger.error('build', FORMAT_INVALID, "The format of the Sku ID name is invalid. The correct format is '(a-zA-Z0-9_)(a-zA-Z0-9_-.)*'",
+                                    File=self.MetaFile, Line=Record[-1])
                 self._SkuIds[Record[1]] = (Record[0],Record[1],Record[2])
             if 'DEFAULT' not in self._SkuIds:
                 self._SkuIds['DEFAULT'] = ("0","DEFAULT","DEFAULT")
