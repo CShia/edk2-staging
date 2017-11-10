@@ -24,6 +24,7 @@ gOptions = None
 gCaseInsensitive = False
 gAllFiles = None
 gCommand = None
+gSKUID_CMD = None
 
 gGlobalDefines = {}
 gPlatformDefines = {}

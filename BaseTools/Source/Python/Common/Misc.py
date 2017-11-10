@@ -2128,9 +2128,6 @@ class SkuClass():
                 EdkLogger.error("build", PARAMETER_INVALID,
                             ExtraData = "SKU-ID [%s] is not supported by the platform. [Valid SKU-ID: %s]"
                                       % (k, " | ".join(SkuIds.keys())))
-        if len(self.SkuIdSet) == 2 and 'DEFAULT' in self.SkuIdSet and SkuIdentifier != 'ALL':
-            self.SkuIdSet.remove('DEFAULT')
-            self.SkuIdNumberSet.remove('0U')
         for each in self.SkuIdSet:
             if each in SkuIds:
                 self.AvailableSkuIds[each] = SkuIds[each][0]
