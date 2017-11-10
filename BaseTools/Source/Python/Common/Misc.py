@@ -2120,7 +2120,7 @@ class SkuClass():
             self.SkuIdNumberSet = [num[0].strip() + 'U' for num in SkuIds.values()]
         else:
             r = SkuIdentifier.split('|') 
-            self.SkuIdSet=[r[k].strip() for k in range(len(r))]      
+            self.SkuIdSet=[(r[k].strip()).upper() for k in range(len(r))]
             k = None
             try: 
                 self.SkuIdNumberSet = [SkuIds[k][0].strip() + 'U' for k in self.SkuIdSet]   
