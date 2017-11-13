@@ -76,8 +76,10 @@ def GetPackageList(Platform, BuildDatabase, Arch, Target, Toolchain):
 #  @param Toolchain: Current toolchain
 #  @retval: A dictionary contains instances of PcdClassObject with key (PcdCName, TokenSpaceGuid)
 #
-def GetDeclaredPcd(Platform, BuildDatabase, Arch, Target, Toolchain):
+def GetDeclaredPcd(Platform, BuildDatabase, Arch, Target, Toolchain,additionalPkgs):
     PkgList = GetPackageList(Platform, BuildDatabase, Arch, Target, Toolchain)
+    PkgList = set(PkgList)
+    PkgList |= additionalPkgs
     DecPcds = {}
 #     StructurePcdRawData = []
     for Pkg in PkgList:

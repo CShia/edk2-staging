@@ -797,7 +797,7 @@ class DscBuildData(PlatformBuildClassObject):
 
     def _ValidatePcd(self, PcdCName, TokenSpaceGuid, Setting, PcdType, LineNo):
         if self._DecPcds == None:
-            self._DecPcds = GetDeclaredPcd(self, self._Bdb, self._Arch, self._Target, self._Toolchain)
+            
             FdfInfList = []
             if GlobalData.gFdfParser:
                 FdfInfList = GlobalData.gFdfParser.Profile.InfList
@@ -809,13 +809,11 @@ class DscBuildData(PlatformBuildClassObject):
                     continue
                 ModuleData = self._Bdb[ModuleFile, self._Arch, self._Target, self._Toolchain]
                 PkgSet.update(ModuleData.Packages)
-            DecPcds = {}
-            for Pkg in PkgSet:
-                for Pcd in Pkg.Pcds:
-                    DecPcds[Pcd[0], Pcd[1]] = Pkg.Pcds[Pcd]
-            self._DecPcds.update(DecPcds)
+            
+            self._DecPcds = GetDeclaredPcd(self, self._Bdb, self._Arch, self._Target, self._Toolchain,PkgSet)
+            
 
-        if (PcdCName, TokenSpaceGuid) not in self._DecPcds and "." in TokenSpaceGuid and (TokenSpaceGuid.split(".")[1], TokenSpaceGuid.split(".")[0]) not in self._DecPcds:
+        if (PcdCName, TokenSpaceGuid) not in self._DecPcds:
             EdkLogger.error('build', PARSER_ERROR,
                             "Pcd (%s.%s) defined in DSC is not declared in DEC files. Arch: ['%s']" % (TokenSpaceGuid, PcdCName, self._Arch),
                             File=self.MetaFile, Line=LineNo)
@@ -981,6 +979,10 @@ class DscBuildData(PlatformBuildClassObject):
                     if str_pcd_data[3] in SkuIds:
                         str_pcd_obj_str.AddOverrideValue(str_pcd_data[2], str(str_pcd_data[6]), 'DEFAULT' if str_pcd_data[3] == 'COMMON' else str_pcd_data[3],'STANDARD' if str_pcd_data[4] == 'COMMON' else str_pcd_data[4], self.MetaFile.File,LineNo=str_pcd_data[5])
                 S_pcd_set[str_pcd[1], str_pcd[0]] = str_pcd_obj_str
+            else:
+                EdkLogger.error('build', PARSER_ERROR,
+                            "Pcd (%s.%s) defined in DSC is not declared in DEC files. Arch: ['%s']" % (str_pcd[0], str_pcd[1], self._Arch),
+                            File=self.MetaFile,Line = StrPcdSet[str_pcd][0][5])
         # Add the Structure PCD that only defined in DEC, don't have override in DSC file
         for Pcd in self._DecPcds:
             if type (self._DecPcds[Pcd]) is StructurePcd:
@@ -1054,8 +1056,7 @@ class DscBuildData(PlatformBuildClassObject):
                 str_pcd_obj.SkuInfoList[self.SkuIdMgr.SystemSkuId].HiiDefaultValue = str_pcd_obj.SkuInfoList[self.SkuIdMgr.SystemSkuId].DefaultStoreDict[mindefaultstorename]
                 
             for str_pcd_obj in S_pcd_set.values():
-                if not str_pcd_obj.OverrideValues:
-                    continue
+
                 str_pcd_obj.MaxDatumSize = self.GetStructurePcdMaxSize(str_pcd_obj)
                 Pcds[str_pcd_obj.TokenCName, str_pcd_obj.TokenSpaceGuidCName] = str_pcd_obj
             
@@ -1073,7 +1074,7 @@ class DscBuildData(PlatformBuildClassObject):
         # tdict is a special dict kind of type, used for selecting correct
         # PCD settings for certain ARCH
         #
-        
+        AvailableSkuIdSet = copy.copy(self.SkuIds)
         
         PcdDict = tdict(True, 3)
         PcdSet = set()
@@ -1082,6 +1083,9 @@ class DscBuildData(PlatformBuildClassObject):
         PcdValueDict = sdict()
         for TokenSpaceGuid, PcdCName, Setting, Arch, SkuName, Dummy3, Dummy4,Dummy5 in RecordList:
             SkuName = SkuName.upper()
+            if SkuName not in AvailableSkuIdSet:
+                EdkLogger.error('build ', PARAMETER_INVALID, 'Sku %s is not defined in [SkuIds] section' % SkuName,
+                                            File=self.MetaFile, Line=Dummy5)
             if SkuName in (self.SkuIdMgr.SystemSkuId, 'DEFAULT', 'COMMON'):
                 if "." not in TokenSpaceGuid:
                     PcdSet.add((PcdCName, TokenSpaceGuid, SkuName, Dummy4))
@@ -1483,8 +1487,10 @@ class DscBuildData(PlatformBuildClassObject):
         
         for TokenSpaceGuid, PcdCName, Setting, Arch, SkuName, Dummy3, Dummy4,Dummy5 in RecordList:
             SkuName = SkuName.upper()
+
             if SkuName not in AvailableSkuIdSet:
-                continue
+                EdkLogger.error('build', PARAMETER_INVALID, 'Sku %s is not defined in [SkuIds] section' % SkuName,
+                                            File=self.MetaFile, Line=Dummy5)
             if "." not in TokenSpaceGuid:
                 PcdList.append((PcdCName, TokenSpaceGuid, SkuName, Dummy4))
             PcdDict[Arch, SkuName, PcdCName, TokenSpaceGuid] = Setting
@@ -1621,7 +1627,8 @@ class DscBuildData(PlatformBuildClassObject):
             if DefaultStore == "COMMON":
                 DefaultStore = "STANDARD"
             if SkuName not in AvailableSkuIdSet:
-                continue
+                EdkLogger.error('build', PARAMETER_INVALID, 'Sku %s is not defined in [SkuIds] section' % SkuName,
+                                            File=self.MetaFile, Line=Dummy5)
             if "." not in TokenSpaceGuid:
                 PcdSet.add((PcdCName, TokenSpaceGuid, SkuName,DefaultStore, Dummy4))
             PcdDict[Arch, SkuName, PcdCName, TokenSpaceGuid,DefaultStore] = Setting
@@ -1774,7 +1781,8 @@ class DscBuildData(PlatformBuildClassObject):
         for TokenSpaceGuid, PcdCName, Setting, Arch, SkuName, Dummy3, Dummy4,Dummy5 in RecordList:
             SkuName = SkuName.upper()
             if SkuName not in AvailableSkuIdSet:
-                continue
+                EdkLogger.error('build', PARAMETER_INVALID, 'Sku %s is not defined in [SkuIds] section' % SkuName,
+                                            File=self.MetaFile, Line=Dummy5)
             if "." not in TokenSpaceGuid:
                 PcdList.append((PcdCName, TokenSpaceGuid, SkuName, Dummy4))
             PcdDict[Arch, SkuName, PcdCName, TokenSpaceGuid] = Setting
