@@ -89,7 +89,8 @@ typedef UINT32 TABLE_OFFSET;
 typedef struct {
     GUID                  Signature;            // PcdDataBaseGuid.
     UINT32                BuildVersion;
-    UINT32                Length;
+    UINT32                Length;               // Length of DEFAULT SKU PCD DB
+    // UINT32             LengthForAllSkus;     // Length of all SKU PCD DB
     SKU_ID                SystemSkuId;          // Current SkuId value.
     UINT32                UninitDataBaseSize;   // Total size for PCD those default value with 0.
     TABLE_OFFSET          LocalTokenNumberTableOffset;
@@ -139,17 +140,15 @@ typedef struct {
   DXE_PCD_DATABASE  *DxeDb;
 } PCD_DATABASE;
 
-#pragma pack(1)
+typedef struct {
+  UINT32 Offset:24;
+  UINT32 Value:8;
+} DATA_DELTA;
 
 typedef struct {
   UINT16 SkuId;
   UINT16 DefaultId;
 } DEFAULT_INFO;
-
-typedef struct {
-  UINT32 Offset:24;
-  UINT32 Value:8;
-} DATA_DELTA;
 
 typedef struct {
   UINT32 DataSize; // full size, it must be at 4 byte alignment. 
@@ -165,6 +164,34 @@ typedef struct {
   // Default data is stored as variable storage or the array of DATA_DELTA. 
   //
 } DEFAULT_DATA;
+
+#define NV_STORE_DEFAULT_BUFFER_SIGNATURE SIGNATURE_32('N', 'S', 'D', 'B')
+
+typedef struct {
+  UINT32    Signature;
+  UINT32    Length;
+  UINT32    MaxLength;
+  // DEFAULT_DATA
+} NV_STORE_DEFAULT_BUFFER;
+
+//
+// NvStoreDefaultValueBuffer layout:
+// +---------------------------------+
+// | NV_STORE_DEFAULT_BUFFER         |
+// +---------------------------------+
+// | DEFAULT_DATA (DEFAULT, Standard)|
+// +---------------------------------+
+// | DATA_DELTA   (DEFAULT, Standard)|
+// +---------------------------------+
+// | ......                          |
+// +---------------------------------+
+// | DEFAULT_DATA (SKU A, Standard)  |
+// +---------------------------------+
+// | DATA_DELTA   (SKU A, Standard)  |
+// +---------------------------------+
+// | ......                          |
+// +---------------------------------+
+//
 
 typedef struct {
   UINT16    SkuId;
@@ -185,7 +212,5 @@ typedef struct {
 // | ......                          |
 // +---------------------------------+
 //
-
-#pragma pack()
 
 #endif

@@ -196,9 +196,9 @@ PcdSetNvStoreDefaultIdCallBack (
     //
     // Find the matched SkuId and DefaultId in the remaining section
     //
-    Index = ((DataHeader->DataSize & 0xFFFFFF) + 3) & (~3);
+    Index      = (DataHeader->DataSize + 3) & (~3);
+    DataHeader = (DEFAULT_DATA *) (DataBuffer + Index);
     while (!IsFound && Index < FullSize && DataHeader->DataSize != 0xFFFFFFFF) {
-      DataHeader  = (DEFAULT_DATA *) (DataBuffer + Index);
       DefaultInfo = &(DataHeader->DefaultInfo[0]);
       BufferEnd   = (UINT8 *) DataHeader + sizeof (DataHeader->DataSize) + DataHeader->HeaderSize;
       while ((UINT8 *) DefaultInfo < BufferEnd) {
@@ -216,7 +216,8 @@ PcdSetNvStoreDefaultIdCallBack (
           DeltaData ++;
         }
       }
-      Index = ((DataHeader->DataSize & 0xFFFFFF) + 3) & (~3);
+      Index     += DataHeader->DataSize;
+      DataHeader = (DEFAULT_DATA *) (DataBuffer + Index);
     }
   }
 
